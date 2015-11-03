@@ -1,5 +1,7 @@
 package com.mapbox.mapboxsdk.http;
 
+import android.util.Log;
+
 import com.mapbox.mapboxsdk.constants.MapboxConstants;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
@@ -91,9 +93,6 @@ class HTTPContext {
             byte[] body;
             try {
                 body = response.body().bytes();
-            } catch (IOException e) {
-                onFailure(mRequest, e);
-                return;
             } finally {
                 response.body().close();
             }

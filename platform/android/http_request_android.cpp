@@ -76,6 +76,8 @@ private:
     static const int temporaryError = 1;
     static const int permanentError = 2;
     static const int canceledError = 3;
+
+    bool outstanding = true;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -248,6 +250,10 @@ void HTTPAndroidRequest::finish() {
 }
 
 void HTTPAndroidRequest::onResponse(int code, std::string message, std::string etag, std::string modified, std::string cacheControl, std::string expires, std::string body) {
+    if (!outstanding) {
+        return;
+    }
+
     if (!response) {
         response = std::make_unique<Response>();
     }
@@ -290,9 +296,15 @@ void HTTPAndroidRequest::onResponse(int code, std::string message, std::string e
     }
 
     async.send();
+
+    outstanding = false;
 }
 
 void HTTPAndroidRequest::onFailure(int type, std::string message) {
+    if (!outstanding) {
+        return;
+    }
+
     if (type != canceledError) {
         if (!response) {
             response = std::make_unique<Response>();
@@ -316,6 +328,8 @@ void HTTPAndroidRequest::onFailure(int type, std::string message) {
     }
 
     async.send();
+
+    outstanding = false;
 }
 
 std::unique_ptr<HTTPContextBase> HTTPContextBase::createContext(uv_loop_t* loop) {
