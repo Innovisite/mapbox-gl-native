@@ -46,6 +46,8 @@ class HTTPContext {
     }
 
     public class HTTPRequest implements Callback {
+        private final String LOG_TAG = HTTPRequest.class.getName();
+
         private long mNativePtr = 0;
 
         private Call mCall;
@@ -76,6 +78,8 @@ class HTTPContext {
 
         @Override
         public void onFailure(Request request, IOException e) {
+            Log.d(LOG_TAG, "onFailure: " + e.getMessage());
+
             int type = PERMANENT_ERROR;
             if ((e instanceof UnknownHostException) || (e instanceof SocketException) || (e instanceof ProtocolException) || (e instanceof SSLException)) {
                 type = CONNECTION_ERROR;
@@ -93,9 +97,19 @@ class HTTPContext {
             byte[] body;
             try {
                 body = response.body().bytes();
+            } catch (ProtocolException e) {
+                Log.d(LOG_TAG , "ProtocolException: " + e.getMessage());
+                throw new IOException("ProtocolException", e);
             } finally {
                 response.body().close();
             }
+
+//            if (body == null) {
+//                // Avoids JNI DETECTED ERROR IN APPLICATION: jarray was NULL in call to
+//                // GetByteArrayElements from nativeOnResponse()
+//                Log.d(LOG_TAG, "nativeOnResponse skipped due to empty body.");
+//                throw new IOException("nativeOnResponse skipped due to empty body.");
+//            }
 
             nativeOnResponse(mNativePtr, response.code(), response.message(), response.header("ETag"), response.header("Last-Modified"), response.header("Cache-Control"), response.header("Expires"), body);
         }
