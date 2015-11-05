@@ -377,7 +377,6 @@ void NodeMap::renderFinished() {
         };
         cb->Call(1, argv);
     }
-    cb.reset();
 }
 
 /**
