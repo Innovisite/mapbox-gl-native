@@ -97,9 +97,11 @@ class HTTPContext {
             byte[] body;
             try {
                 body = response.body().bytes();
-            } catch (ProtocolException e) {
-                Log.d(LOG_TAG , "ProtocolException: " + e.getMessage());
-                throw new IOException("ProtocolException", e);
+            } catch (IOException e) {
+                //Log.d(LOG_TAG , "ProtocolException: " + e.getMessage());
+                //throw new IOException("ProtocolException", e);
+                onFailure(null, e);
+                throw e;
             } finally {
                 response.body().close();
             }

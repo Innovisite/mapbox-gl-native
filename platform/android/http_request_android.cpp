@@ -234,7 +234,7 @@ void HTTPAndroidRequest::onResponse(int code, std::string message, std::string e
 
     async.send();
 
-    outstanding = false;
+    //outstanding = false;
 }
 
 void HTTPAndroidRequest::onFailure(int type, std::string message) {
@@ -261,7 +261,7 @@ void HTTPAndroidRequest::onFailure(int type, std::string message) {
 
     async.send();
 
-    outstanding = false;
+    //outstanding = false;
 }
 
 std::unique_ptr<HTTPContextBase> HTTPContextBase::createContext(uv_loop_t* loop) {
@@ -299,9 +299,12 @@ void JNICALL nativeOnResponse(JNIEnv *env, jobject obj, jlong nativePtr, jint co
     if (expires != nullptr) {
         expiresStr = mbgl::android::std_string_from_jstring(env, expires);
     }
-    jbyte* bodyData = env->GetByteArrayElements(body, nullptr);
-    std::string bodyStr(reinterpret_cast<char*>(bodyData), env->GetArrayLength(body));
-    env->ReleaseByteArrayElements(body, bodyData, JNI_ABORT);
+    std::string bodyStr;
+    if (body != nullptr) {
+        jbyte* bodyData = env->GetByteArrayElements(body, nullptr);
+        bodyStr = std::string(reinterpret_cast<char*>(bodyData), env->GetArrayLength(body));
+        env->ReleaseByteArrayElements(body, bodyData, JNI_ABORT);
+    }
     return request->onResponse(code, messageStr, etagStr, modifiedStr, cacheControlStr, expiresStr, bodyStr);
 }
 
