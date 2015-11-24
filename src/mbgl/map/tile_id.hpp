@@ -46,12 +46,15 @@ public:
         return y < rhs.y;
     }
 
+    inline int32_t invY() const {
+      return (1 << z) - y - 1;
+    }
+
     TileID parent(int8_t z, int8_t sourceMaxZoom) const;
     TileID normalized() const;
     std::forward_list<TileID> children(int8_t sourceMaxZoom) const;
     bool isChildOf(const TileID&) const;
     operator std::string() const;
-
 };
 
 }
