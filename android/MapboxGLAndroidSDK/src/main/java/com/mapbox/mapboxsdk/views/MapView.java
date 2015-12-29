@@ -56,6 +56,7 @@ import com.almeros.android.multitouch.gesturedetectors.RotateGestureDetector;
 import com.almeros.android.multitouch.gesturedetectors.TwoFingerGestureDetector;
 import com.mapbox.mapboxsdk.R;
 import com.mapbox.mapboxsdk.annotations.Annotation;
+import com.mapbox.mapboxsdk.annotations.CircleOptions;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.annotations.Polygon;
@@ -150,6 +151,9 @@ public final class MapView extends FrameLayout {
     private static final float DIMENSION_SIXTEEN_DP = 16f;
     private static final float DIMENSION_SEVENTYSIX_DP = 76f;
 
+
+    private CircleOverlayView mCircle;
+
     // Used to select "Improve this map" link in the attribution dialog
     // Index into R.arrays.attribution_links
     private static final int ATTRIBUTION_INDEX_IMPROVE_THIS_MAP = 2;
@@ -199,6 +203,7 @@ public final class MapView extends FrameLayout {
 
     // Used for displaying annotations
     // Every annotation that has been added to the map
+    private final List <CircleOverlayView> mCircles = new ArrayList<>();
     private final List<Annotation> mAnnotations = new ArrayList<>();
     private List<Marker> mMarkersNearLastTap = new ArrayList<>();
     private Marker mSelectedMarker;
@@ -656,6 +661,11 @@ public final class MapView extends FrameLayout {
         // Setup user location UI
         mUserLocationView = (UserLocationView) view.findViewById(R.id.userLocationView);
         mUserLocationView.setMapView(this);
+
+        mCircle = new CircleOverlayView(context);
+        mCircle.setMapView(this);
+     //   this.addView(mCircle);
+
 
         // Setup compass
         mCompassView = (CompassView) view.findViewById(R.id.compassView);
@@ -1757,6 +1767,23 @@ public final class MapView extends FrameLayout {
         return new ArrayList<>(markers);
     }
 
+
+    public CircleOverlayView addCircle(@NonNull CircleOptions circleOptions){
+
+        if (circleOptions == null) {
+            Log.w(TAG, "circleOptions was null, so just returning null");
+            return null;
+        }
+
+        CircleOverlayView circle = circleOptions.getCircle();
+        circle.setMapView(this);
+        this.addView(circle);
+
+        mCircles.add(circle);
+
+        return circle;
+    }
+
     /**
      * Adds a polyline to this map.
      *
@@ -1866,6 +1893,18 @@ public final class MapView extends FrameLayout {
         }
 
         return new ArrayList<>(polygons);
+    }
+
+
+    public void removeCircle(@NonNull CircleOverlayView circle){
+
+        if (circle == null) {
+            Log.w(TAG, "circle was null, so just returning");
+            return;
+        }
+
+        this.removeView(circle);
+        mCircles.remove(circle);
     }
 
     /**
@@ -2218,6 +2257,10 @@ public final class MapView extends FrameLayout {
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
             mCompassView.update(getDirection());
             mUserLocationView.update();
+
+            for (CircleOverlayView circle : mCircles) {
+                circle.update();
+            }
         }
     }
 
