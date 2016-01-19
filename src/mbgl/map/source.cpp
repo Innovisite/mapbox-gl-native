@@ -99,6 +99,9 @@ void SourceInfo::parseTileJSONProperties(const rapidjson::Value& value) {
     parse(value, attribution, "attribution");
     parse(value, center, "center");
     parse(value, bounds, "bounds");
+    std::string scheme;
+    parse(value, scheme, "scheme");
+    invScheme = (scheme == "xYz");
 }
 
 std::string SourceInfo::tileURL(const TileID& id, float pixelRatio) const {
@@ -107,7 +110,7 @@ std::string SourceInfo::tileURL(const TileID& id, float pixelRatio) const {
     result = util::replaceTokens(result, [&](const std::string &token) -> std::string {
         if (token == "z") return util::toString(std::min(id.z, static_cast<int8_t>(max_zoom)));
         if (token == "x") return util::toString(id.x);
-        if (token == "y") return util::toString(id.y);
+        if (token == "y") return invScheme ? util::toString(id.invY()) : util::toString(id.y);
         if (token == "prefix") {
             std::string prefix { 2 };
             prefix[0] = "0123456789abcdef"[id.x % 16];
@@ -164,6 +167,8 @@ void Source::load() {
 
         rapidjson::Document d;
         d.Parse<0>(res.data->c_str());
+
+	Log::Info(Event::General, "%s", res.data->c_str());
 
         if (d.HasParseError()) {
             std::stringstream message;
